@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ice Field</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <div class="controls">
+        <label for="speed">
+            Time per step (ms)
+            <input type="range" name="speed" id="speed" value="500" min="100" max="5000">
+            <span id="speedLabel">500</span>
+        </label>
+        <label for="auto">
+            Automatic Stepping
+            <input type="checkbox" name="auto" id="auto">
+        </label>
+        <button id="stepButton">Step</button>
+    </div>
+    <div id="game"></div>
+    <div id="messages"></div>
+</body>
+</html>
