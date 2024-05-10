@@ -12,6 +12,9 @@ const NUM_PLAYERS = Math.floor(ROWS * COLUMNS / 10);
 
 let autoInterval = null;
 
+let whitelists = {};
+let blacklists = {};
+
 function MakeField() {
     for (let index = 0; index < ROWS * COLUMNS; index++) {
         const tile = document.createElement("div");
@@ -37,8 +40,12 @@ function MakeField() {
         player.innerText = index.toString().padStart(2, "0");
         player.dataset.num = index;
 
+        whitelists[index] = [];
+        blacklists[index] = [];
+
         const chosenIndex = Math.floor(Math.random() * tiles.length);
         tiles[chosenIndex].appendChild(player);
+        whitelists[index].push(tiles[chosenIndex]);
         tiles.splice(chosenIndex, 1);
     }
 }
@@ -70,11 +77,24 @@ function AdjacentTiles(tile) {
     return tiles;
 }
 
+function AlertNearby(tile) {
+    const alertedTiles = AdjacentTiles(tile);
+    for (const alertedTile of alertedTiles) {
+        const player = alertedTile.querySelector(".player");
+        if (player != null) {
+            blacklists[Number(player.dataset.num)].push(alertedTile);
+            AddMessage(Number(player.dataset.num) + "alerted");
+        }
+    }
+}
+
 function Step() {
     messages.innerHTML = "";
 
     const players = Array.from(document.querySelectorAll(".player"));
     for (const player of players) {
+        const id = Number(player.dataset.num);
+
         const adjacentTiles = AdjacentTiles(player.parentElement);
         const availableTiles = adjacentTiles.filter(x => x.matches(":not(:has(.player))"));
 
@@ -82,14 +102,24 @@ function Step() {
             continue;
         }
 
-        const pickedTile = availableTiles[Math.floor(Math.random() * availableTiles.length)];
+        const positiveTiles = availableTiles.filter(x => whitelists[id].includes(x));
+        const neutralTiles = availableTiles.filter(x => !(blacklists[id].includes(x)) && !(whitelists[id].includes(x)));
+        const negativeTiles = availableTiles.filter(x => blacklists[id].includes(x));
+
+        const pickFrom = positiveTiles.length == 0 ? (neutralTiles.length == 0 ? negativeTiles : neutralTiles) : positiveTiles;
+
+        const pickedTile = pickFrom[Math.floor(Math.random() * pickFrom.length)];
 
         if (pickedTile.matches(":has(.hole)")) {
             AddMessage(`Player ${player.dataset.num} fell`);
+            AlertNearby(pickedTile);
             player.remove();
         }
         else {
             pickedTile.appendChild(player);
+            if (!(whitelists[id].includes(pickedTile))) {
+                whitelists[id].push(pickedTile);
+            }
         }
     }
 }
