@@ -83,7 +83,28 @@ function AlertNearby(tile) {
         const player = alertedTile.querySelector(".player");
         if (player != null) {
             blacklists[Number(player.dataset.num)].push(alertedTile);
-            AddMessage(Number(player.dataset.num) + "alerted");
+            AddMessage(`${Number(player.dataset.num)} alerted`);
+        }
+    }
+}
+
+function ShareKnowledge(player) {
+    const id = Number(player.dataset.num);
+    const tile = player.parentElement;
+
+    const adjTiles = AdjacentTiles(tile);
+    for (const adjTile of adjTiles) {
+        const otherPlayer = adjTile.querySelector(".player");
+        if (otherPlayer != null) {
+            const otherId = Number(otherPlayer.dataset.num);
+
+            whitelists[otherId] = whitelists[id].concat(whitelists[otherId].filter(x => whitelists[id].indexOf(x) < 0));
+            whitelists[id] = whitelists[otherId];
+
+            blacklists[otherId] = blacklists[id].concat(blacklists[otherId].filter(x => blacklists[id].indexOf(x) < 0));
+            blacklists[id] = blacklists[otherId];
+
+            AddMessage(`${id} shared knowledge with ${otherId}`);
         }
     }
 }
@@ -120,6 +141,7 @@ function Step() {
             if (!(whitelists[id].includes(pickedTile))) {
                 whitelists[id].push(pickedTile);
             }
+            ShareKnowledge(player);
         }
     }
 }
