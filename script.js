@@ -15,6 +15,8 @@ let autoInterval = null;
 let whitelists = {};
 let blacklists = {};
 
+let followedPlayer = null;
+
 function MakeField() {
     for (let index = 0; index < ROWS * COLUMNS; index++) {
         const tile = document.createElement("div");
@@ -42,6 +44,8 @@ function MakeField() {
 
         whitelists[index] = [];
         blacklists[index] = [];
+
+        player.addEventListener("click", () => PlayerClicked(player));
 
         const chosenIndex = Math.floor(Math.random() * tiles.length);
         tiles[chosenIndex].appendChild(player);
@@ -82,7 +86,7 @@ function AlertNearby(tile) {
     for (const alertedTile of alertedTiles) {
         const player = alertedTile.querySelector(".player");
         if (player != null) {
-            blacklists[Number(player.dataset.num)].push(alertedTile);
+            blacklists[Number(player.dataset.num)].push(tile);
             AddMessage(`${Number(player.dataset.num)} alerted`);
         }
     }
@@ -144,6 +148,8 @@ function Step() {
             ShareKnowledge(player);
         }
     }
+
+    UpdateFollowVisualization();
 }
 
 function AddMessage(text) {
@@ -161,6 +167,43 @@ function ToggleAuto() {
     else {
         clearInterval(autoInterval);
     }
+}
+
+function PlayerClicked(player) {
+    RemoveFollowVisualization();
+
+    if (followedPlayer == player) {
+        followedPlayer = null
+    }
+    else {
+        followedPlayer = player;
+        UpdateFollowVisualization();
+    }
+}
+
+function RemoveFollowVisualization() {
+    document.querySelectorAll(".player.followed").forEach(element => {
+        element.classList.remove("followed");
+    });
+    document.querySelectorAll(".tile.whitelist, .tile.blacklist").forEach(element => {
+        element.classList.remove("whitelist", "blacklist");
+    });
+}
+
+function UpdateFollowVisualization() {
+    if (!document.contains(followedPlayer)) {
+        RemoveFollowVisualization();
+        return;
+    }
+
+    followedPlayer.classList.add("followed");
+    const id = Number(followedPlayer.dataset.num);
+    whitelists[id].forEach(element => {
+        element.classList.add("whitelist");
+    });
+    blacklists[id].forEach(element => {
+        element.classList.add("blacklist");
+    });
 }
 
 MakeField();
